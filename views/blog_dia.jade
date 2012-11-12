@@ -1,0 +1,75 @@
+﻿
+html
+  head
+    title="Spirin Travels : Blog"
+    meta(name="msvalidate.01", content="DF74E0934E999839CFF9FAD576CC106E")
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    script(src="javascripts/jquery-1.7.1.min.js")
+    script(src="javascripts/myopenstat.js")
+    script(type='text/javascript')
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-34005435-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+  body()
+    .container
+        .row
+            .span8
+                .row
+                  .span8
+                    h4
+                      strong
+                        a(href= '/blog_dia?h=' + title) #{title}
+                .row
+                  .span2
+                    - if(img != null)
+                      - for(j = 0; j < img.length; j++)
+                        a.thumbnail(href= '/blog_dia?h=' + title)
+                          img(src= img[j], alt='')
+                  .span6
+                    p
+                      | #{text}
+                .row
+                  .span8
+                    p
+                    p
+                      i.icon-user 
+                      | by
+                      a(href='#') Yulia 
+                      i.icon-calendar 
+                      | Oct 03th, 2012 
+                      i.icon-comment 
+                      a(href='#') #{comments.length} Comments 
+                hr
+                - if(comments != null)
+                  .row
+                    h4
+                      strong
+                        | Comments\:
+                    .span2
+                    .span6
+                      - for(j = 0; j < comments.length; j++)
+                        p
+                          i.icon-user 
+                          | by
+                          a(href='#') #{comments[j].nik} 
+                          i.icon-calendar 
+                          | 
+                          - var x=comments[j].date;var d = x.getDate();var m = x.getMonth()+1;var y = x.getFullYear();x= '' + y +'-'+ (m<=9?'0'+m:m) +'-'+ (d<=9?'0'+d:d);
+                          a(href='#') #{x} 
+                        p
+                          | #{comments[j].text}
+                .row
+                  .span6
+                    p
+                      .span4.well
+                        form(accept-charset='UTF-8', action='/comment', method='POST')
+                          input(type='HIDDEN', style='display: none;', name='title', value=title)
+                          i.icon-comment 
+                          a(href='/auth/vkontakte') Vkontakte
+                          textarea#new_message.span4(name='new_message', placeholder='Type in your comment', rows='5')
+                          button.btn.btn-info(type='submit') Post New Message

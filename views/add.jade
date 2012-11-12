@@ -1,0 +1,11 @@
+doctype 5
+html
+  head
+    title=pageTitle
+    script(src="javascripts/jquery-1.7.1.min.js")
+    script(src="javascripts/all.min.js")
+  body
+    form(action="/add", enctype="multipart/form-data", method="post")
+      input(type="hidden", name="albom", value=albom)
+      input(type="file", name="file", multiple="multiple")
+      input(type="submit", value="Upload")

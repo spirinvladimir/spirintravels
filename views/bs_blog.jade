@@ -1,0 +1,55 @@
+﻿
+html
+  head
+    title="Spirin Travels : Blog"
+    meta(name="msvalidate.01", content="DF74E0934E999839CFF9FAD576CC106E")
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    script(src="javascripts/jquery-1.7.1.min.js")
+    script(src="javascripts/myopenstat.js")
+    script(type='text/javascript')
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-34005435-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+  body()
+    .container
+      - for(i = 0; i < obj.length; i++)
+        .row
+            .span8
+                .row
+                  .span8
+                    h4
+                      strong
+                        a(href= '/blog_dia?h=' + obj[i].title) #{obj[i].title}
+                .row
+                  .span2
+                    - for(j = 0; j < obj[i].images.length; j++)
+                      - var link = obj[i].images[j].replace(/_orig\.jpg$/,"_M.jpg");
+                      a.thumbnail(href= '/blog_dia?h=' + obj[i].title)
+                        img(src= link, alt='')
+                  .span6
+                    p
+                      | #{obj[i].text}
+                    p
+                      a.btn(href= '/blog_dia?h=' + obj[i].title) Read more
+                .row
+                  .span8
+                    p
+                    p
+                      i.icon-user 
+                      | by
+                      a(href='#') Yulia 
+                      - var x=obj[i].date;var d = x.getDate();var m = x.getMonth()+1;var y = x.getFullYear();x= '' + y +'-'+ (m<=9?'0'+m:m) +'-'+ (d<=9?'0'+d:d);
+                      i.icon-calendar 
+                      | #{x} 
+                      i.icon-comment 
+                      a(href= '/blog_dia?h=' + obj[i].title) #{obj[i].comments.length} Comments 
+                      i.icon-tags 
+                      | Tags : 
+                      a(href= '/blog_dia?h=' + obj[i].title)
+                        span.label.label-info Comment
+        hr
