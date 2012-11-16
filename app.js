@@ -2,13 +2,14 @@
  * Module dependencies.
  */
 var express = require('express'),
-	everyauth = require('everyauth'),
+//	everyauth = require('everyauth'),
 	routes = require('./routes'),
 	fs = require('fs.extra'),
 	path = require('path'),
 	util = require('util'),
 	assert = require('assert'),
-	app = module.exports = express.createServer(),
+//	app = module.exports = express.createServer(),
+	app = express(),
 	stylus = require('stylus'),
 	nib = require('nib'),
 	io = require('socket.io').listen(app),
@@ -43,7 +44,9 @@ var express = require('express'),
 	MongoStore = require('connect-mongo')(express),
 	blog_data = require('./blog.js').blog_data,
 	boli = require('./boli.js').boli,
-	conf = require('./conf.js');
+	solr = require('solr-client'),
+	solrclient = solr.createClient();
+//	conf = require('./conf.js');
 
 
 function initdb() {
@@ -87,6 +90,19 @@ function initdb() {
 				}
 		});
 	});
+	Blog.find({}, function(err, docs) {
+		if (!err){ 
+			docs.forEach(function (el) {
+				solrclient.add(el, function (err, obj) {
+					if (err) {
+						console.log(err);
+					} else {
+						console.log(util.inspect('Solr: ' + obj, false, null, true));
+					}
+				});
+			});
+		} else { throw err;}
+	});
 }
 // Configuration
 
@@ -111,7 +127,7 @@ app.configure(function () {
 		})
 	}));
 	
-	app.use(everyauth.middleware(app));
+//	app.use(everyauth.middleware(app));
 	
 	app.use(app.router);
 	app.use(express.static(__dirname + '/public'));
@@ -133,19 +149,19 @@ app.configure('production', function () {
 	app.use(express.errorHandler());
 });
 
-everyauth.debug = true;
+//everyauth.debug = true;
 
-everyauth.vkontakte
-	.appId(conf.vkontakte.appId)
-	.appSecret(conf.vkontakte.appSecret)
-	.findOrCreateUser( function (session, accessToken, accessTokenExtra, vkUserMetadata) {
-	
-		console.log(util.inspect(accessToken, false, null, true));
-		//res.json(JSON.stringify(c));
-		//return usersByVkId[vkUserMetadata.uid] ||
-		//(usersByVkId[vkUserMetadata.uid] = addUser('vkontakte', vkUserMetadata));
-	})
-	.redirectPath('/bs_blog');
+//everyauth.vkontakte
+//	.appId(conf.vkontakte.appId)
+//	.appSecret(conf.vkontakte.appSecret)
+//	.findOrCreateUser( function (session, accessToken, accessTokenExtra, vkUserMetadata) {
+//	
+//		console.log(util.inspect(accessToken, false, null, true));
+//		//res.json(JSON.stringify(c));
+//		//return usersByVkId[vkUserMetadata.uid] ||
+//		//(usersByVkId[vkUserMetadata.uid] = addUser('vkontakte', vkUserMetadata));
+//	})
+//	.redirectPath('/bs_blog');
 
 // Routes
 
