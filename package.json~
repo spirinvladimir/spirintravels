@@ -21,7 +21,7 @@
     "carrier": "*",
     "mongoose": "*",
     "connect-mongo": "*",
-    "solr": "*"
+    "solr-client"
   },
   "engines": {
     "node": "0.6.x"
