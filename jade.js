@@ -7,9 +7,11 @@ var express = require('express'),
 	path = require('path'),
 	util = require('util'),
 	assert = require('assert'),
-	boli = require('boli').boli,
-	app = module.exports = express.createServer(),
-	obj = require('./blog.js').blog_data;
+	boli = require('./boli').boli,
+	app = express(),
+	blog_data = require('./blog.js').blog_data;
+	solr = require('solr'),
+	solrclient = solr.createClient('http://api.solrhq.com', '80', '', '/txt/061643c0225f5b73eec64227b491f6a2/start-session/blog/');
 
 	// Configuration
 
@@ -40,34 +42,54 @@ app.get('/', routes.index);
 
 app.get('/bs_blog', function (req, res) {
 	//console.log(util.inspect(obj, false, null, true));
-	////console.log(util.inspect(obj.length, false, null, true));
+	////console.log(util.inspect(blog_data.length, false, null, true));
 	//
-	//for (i = 0; i < obj.length; i++) {
-	//	//console.log(util.inspect(obj[i].img, false, null, true));
-	//	if(obj[i].img != null) {
-	//		//console.log(util.inspect(obj[i].img.length, false, null, true));
-	//		//for (j = 0; j < .length; j++) {
-	//		for (val in obj[i].img) {
-	//			console.log(util.inspect(val , false, null, true));
-	//		}
-	//	}
-	//}
-    res.render('bs_blog.jade', {obj: obj});
+	for (i = 0; i < blog_data.length; i++) {
+		if(! blog_data[i].hasOwnProperty('title')) {
+			blog_data[i].title = blog_data[i].h;
+		}
+		if(! blog_data[i].hasOwnProperty('text')) {
+			blog_data[i].text = blog_data[i].t;
+		}
+		if(! blog_data[i].hasOwnProperty('date')) {
+			blog_data[i].date = Date.now;
+		}
+	}
+	
+    res.render('bs_blog.jade', {obj: blog_data});
 });
 
 app.get('/blog_dia', function (req, res) {
 	var i, x = -1;
-	for (i = 0; i < obj.length; i++) {
-		if(obj[i].h === req.query.h) {
+	for (i = 0; i < blog_data.length; i++) {
+		if(blog_data[i].h === req.query.h) {
 			x = i;
-			i = obj.length;
+			i = blog_data.length;
 		}
 	}
 	if (x >= 0) {
-		res.render('blog_dia.jade', {title: obj[x].h, text: obj[x].t, img: obj.img});
+		res.render('blog_dia.jade', {date: new Date, title: blog_data[x].h, text: blog_data[x].t, img: blog_data.img, comments: null});
 	} else {
-		res.render('bs_blog.jade', {obj: obj});
+		res.render('bs_blog.jade', {obj: blog_data});
 	}
+});
+
+app.post('/find', function (req, res) {
+	console.log('Request:' + req.body.q);
+	
+	//res.render('bs_blog.jade', {obj: blog_data});//Debug
+	
+	var query = 'title_t:'+req.body.q;
+	solrclient.query(query, function(err, response) {
+		if (err) throw err;
+		var responseObj = JSON.parse(response);
+		console.log('A search for "' + query + '" returned ' + responseObj.response.numFound + ' documents.');
+		responseObj.response.docs.forEach(function (doc) {
+			if (doc.hasOwnProperty('title_t')) {
+				console.log('doc title: ' + doc.title_t);
+			}
+		});
+	});
 });
 
 app.get('/excursion', function (req, res) {

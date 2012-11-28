@@ -21,11 +21,10 @@
     "carrier": "*",
     "mongoose": "*",
     "connect-mongo": "*",
-    "solr-client"
   },
   "engines": {
     "node": "0.6.x"
   },
   "subdomain": "ldf",
-  "version": "0.0.2-38"
+  "version": "0.0.2-39"
 }

@@ -10,9 +10,11 @@ var express = require('express'),
 	assert = require('assert'),
 //	app = module.exports = express.createServer(),
 	app = express(),
+	http = require('http'),
+	server = http.createServer(app),
+	io = require('socket.io').listen(server),
 	stylus = require('stylus'),
 	nib = require('nib'),
-	io = require('socket.io').listen(app),
 	carrier = require('carrier'),
 	mongoose = require('mongoose'),
 	//db = mongoose.connect('mongodb://localhost/db'),
@@ -43,14 +45,60 @@ var express = require('express'),
 	Blog = mongoose.model('blog', BlogSchema),
 	MongoStore = require('connect-mongo')(express),
 	blog_data = require('./blog.js').blog_data,
-	boli = require('./boli.js').boli,
-	//solr = require('solr-client'),
-	//solrclient = solr.createClient('127.0.0.1', '8983', '', '/solr');
+	boli = require('./boli.js').boli;
+	
+	//console.log(blog_data.length);
+	
+	var dns = require('dns');
+
+	dns.resolve4('spirintravels.com', function (err, addresses) {
+  		if (err) throw err;
+
+  		console.log('addresses: ' + JSON.stringify(addresses));
+
+  		addresses.forEach(function (a) {
+    		dns.reverse(a, function (err, domains) {
+      			if (err) {
+        			throw err;
+      			}
+
+      			console.log('reverse for ' + a + ': ' + JSON.stringify(domains));
+    		});
+  		});
+	});
+	
+	//dns.lookup('http://api.solrhq.com/txt/061643c0225f5b73eec64227b491f6a2/start-session/blog/', 4, function(err, address, family) {
+	//dns.lookup('http://api.solrhq.com', 4, function(err, address, family) {
+	//	if (err) {
+	//		console.log('err');
+	//	} else {
+	//		console.log('dns: ' + address +' (family:' + family + ')');
+			
+			
+			//http://1.svr.solrhq.com/s/f07d192b8b8b3e47959cf798fdf4f81d/select/?q=solr
+			
+			//solrclient = solr.createClient('http://1.svr.solrhq.com/s/e4789c50b593f5074f1336fd6315ab47/', '80', '', '');
+			
+			//var query2 = solrclient.createQuery().q({title_t : '02'}).start(0).rows(10);
+
+			//solrclient.search(query2, function(err, obj) {
+			//	if (err) {
+			//		console.log(err);
+			//	} else {
+			//		console.log(obj);	
+			//	}
+			//});
+			//console.log(obj);	
+		//}
+	//});
 	//conf = require('./conf.js');
 	//solrclient.autoCommit = true;
-	solr = require('solr'),
-    client = solr.createClient('http://api.solrhq.com', '8983', '', '/txt/061643c0225f5b73eec64227b491f6a2/start-session/blog/');
-    //var client = solr.createClient('http://1.svr.solrhq.com', '8983', '', '/s/0cc7e6817d4fce402b4ac76a1ebb7d29/');
+	
+	
+	//solr = require('solr'),
+    //client = solr.createClient('http://api.solrhq.com', '8983', '', '/txt/061643c0225f5b73eec64227b491f6a2/start-session/blog/');
+    // http://1.svr.solrhq.com/s/0cc7e6817d4fce402b4ac76a1ebb7d29/
+    //client = solr.createClient('1.svr.solrhq.com', '80', '', '/s/0cc7e6817d4fce402b4ac76a1ebb7d29');
 
 //    var doc1 = {
 //      id: '3',
@@ -70,27 +118,52 @@ var express = require('express'),
 //        if (err) throw err;
 //        console.log('Second document added');
 //        client.commit(function(err) {
-          var query = 'title_t:02';
-         client.query(query, function(err, response) {
-            if (err) throw err;
-            var responseObj = JSON.parse(response);
-            console.log('A search for "' + query + '" returned ' + responseObj.response.numFound + ' documents.');
+// -----------------------------------------------------
+//          var query = 'title_t:02';
+//        client.query(query, function(err, response) {
+//            if (err) throw err;
+//            var responseObj = JSON.parse(response);
+//            console.log('A search for "' + query + '" returned ' + responseObj.response.numFound + ' documents.');
 //          
-            responseObj.response.docs.forEach(function (doc) {
-            	if (doc.hasOwnProperty('title_t')) {
-	        		console.log('doc title: ' + doc.title_t);
-	        	}
-            });
-//	        
+//            responseObj.response.docs.forEach(function (doc) {
+//            	if (doc.hasOwnProperty('title_t')) {
+//	        		console.log('doc title: ' + doc.title_t);
+//	        	}
+//            });
+// -----------------------------------------------------------	        
 //	        client.del(null, query, function(err, response) {
 //              if (err) throw err;
 //              console.log('Deleted all docs matching query "' + query + '"');
 //              client.commit();
 //            });
-          });
+//          });
 //        });
 //      });
 //    });
+
+
+// solr-client
+function compare2arrays (a, b) {
+	if ((Array.isArray(a) === Array.isArray(b)) && (Array.isArray(a) === true)) {
+		if (a.length === b.length) {
+			var i;
+			for (i = 0; i < a.length; i++) {     
+				if (a[i] !== b[i]) {
+					//console.log('Going to modify (f3): i=' + i + "; a[i]=" + a[i] + "; b[i]=" + b[i] + ";");
+					return false;
+				}
+			}
+			//console.log('Going to not modify (t1): ');
+			return true;
+		} else {
+			//console.log('Going to modify (f2): ');
+			return false;
+		}
+	} else {
+		//console.log('Going to modify (f1): ');
+		return false;
+	}
+}
 
 function initdb() {
 	var alboms = [
@@ -121,49 +194,67 @@ function initdb() {
 		});
 	});
 	blog_data.forEach(function (el) {
-		Blog.findOne({'title': el.h}, function (err, doc) {
-				if (doc === null) {
-					var artNew = new Blog();
-					artNew.title = el.h;
-					artNew.text = el.t;
-					artNew.images = el.img;
-					artNew.save(function () {
-						console.log(util.inspect('Added new day: ' + artNew.title, false, null, true));
+		Blog.find({'title': el.h}, function (err, docs) {
+			if ((docs === null) || (docs === 'undefined') || (docs.length === 0) || ((docs.length >= 1) && (typeof docs[0] == 'undefined'))) {
+				Blog.findOne({'title': el.h}, function (err, doc) {
+					if ((doc === null) || (doc === 'undefined')) {
+						var artNew = new Blog();
+						artNew.title = el.h;
+						artNew.text = el.t;
+						artNew.images = el.img;
+						artNew.save(function () {
+							console.log(util.inspect('Added new day: ' + artNew.title, false, null, true));
+						});
+					}
+				});
+			} else {
+				if (docs.length > 1) {
+					console.error("Should be only one, but: " + docs.length + ' (for ' + el.h + ')');
+					Blog.find({_id: {$ne: docs[0]._id }}, function (err, docs) {
+						docs.forEach(function (el) {
+							el.remove(function (err, el) {
+								if (err) {
+									console.error("Error in remove(): " + handleError(err));
+									return handleError(err);
+								}
+								if ((el !== null) && (el.hasOwnProperty('_id'))) {
+									Blog.findById(el._id, function (err, el) {
+										if (el !== null) {
+											console.error("Error in remove()");
+										}
+									});
+								}
+							});
+						});
+					});
+				} else {// docs.length === 1
+					Blog.findOne({'title': el.h}, function (err, doc) {
+						var save = 0;
+						if (doc.text !== el.t) {
+							//console.log('Going to modify (.text): ' + el.h);
+							doc.text = el.t;
+							save = 1;
+						}
+						if (!compare2arrays(doc.images, el.img)) {
+							//console.log('Going to modify (.images): ' + el.h);
+							doc.images = el.img;
+							save = 1;
+						}
+						if (save === 1) {
+							console.log('Going to modify: ' + el.h);
+							doc.save(function (err, el_modif) {
+								if (err) {
+									console.error("Error in set/save");
+								}
+								if ((el_modif !== null) && (el_modif.hasOwnProperty('text')) && (el_modif.hasOwnProperty('title')) && (el_modif.text === el.t)) {
+									console.log("Modified \"text\" in day with \"title\": " + el_modif.title);
+								}
+							});
+						}
 					});
 				}
+			}
 		});
-	});
-	Blog.find({}, function(err, docs) {
-		if (!err){ 
-			docs.forEach(function (el) {
-				console.log(util.inspect('_id: ' + el._id, false, null, true));
-
-				// "org.apache.lucene.queryparser.classic.ParseException: Cannot parse 'title_t:10.07.2012 Felis Cumpleanos!!!'
-//				el.title = el.title.replace(/!/g,"");
-
-//				var query = 'title_t:' + el.title;
-//				console.log(util.inspect('query: ' + query, false, null, true));
-//				client.query(query, function(err, response) {
-//					if (err) throw err;
-//					var responseObj = JSON.parse(response);
-//					console.log('Found ' + responseObj.response.numFound + ' documents.');
-//        			if (responseObj.response.numFound === 0) {
-//						var doc1 = {
-//							id: el._id,
-//							title_t: el.title,
-//							text_t: el.text
-//						};	
-//						client.add(doc1, function(err) {
-//							if (err) throw err;
-//							console.log('Document added _id:' + doc1.id);
-//						});
-//					}
-//    			});
-    		});
-//    		client.commit(function(err) {
-//    			if (err) throw err;
-//			});	
-		} else { throw err;}
 	});
 }
 // Configuration
@@ -284,12 +375,13 @@ app.get('/', function (req, res) {
 });
 
 app.get('/bs_blog', function (req, res) {
-	Blog.find({}, function (err, doc) {
-		if (doc !== null) {
-			for(i=0;i<doc.length;i++) {
-				doc[i].text = doc[i].text.substring(0, 800) + ' ...';
+	Blog.find({}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
 			}
-			res.render('H:\\vladimir\\views\\bs_blog.jade', {obj: doc});
+			res.render('bs_blog.jade', {obj: docs});
 			//console.log(util.inspect(doc, false, null, true));
 		}
 	});
@@ -298,7 +390,15 @@ app.get('/bs_blog', function (req, res) {
 app.get('/blog_dia', function (req, res) {
 	Blog.findOne({'title': req.query.h}, function (err, doc) {
 		if (doc !== null) {
-			res.render('blog_dia.jade', {title: doc.title, text: doc.text, img: doc.images, comments: doc.comments});
+			//doc.remove(function (err, el) {
+			//	if (err) {
+			//		console.error("Error in remove(): " + handleError(err));
+			//		return handleError(err);
+			//	}
+			//	res.redirect('/bs_blog');
+				
+			//});
+			res.render('blog_dia.jade', {date: doc.date, title: doc.title, text: doc.text, img: doc.images, comments: doc.comments});
 		}
 	});
 });
@@ -323,6 +423,63 @@ app.post('/comment', function (req, res) {
 	});
 });
 
+app.post('/find', function (req, Mres) {
+			http.get('http://api.solrhq.com/txt/774f3a6b1f229c6e914813a97c30b31d/start-session/blog/', function(res) {
+				console.log("SolrHQ API got response: " + res.statusCode);
+				res.on('data', function (url) {
+					var url_str = "" + url;
+					url_str = url_str.replace(/(\n|\r)+$/, '');
+					//console.log(util.inspect(url_str + 'select/?q=title_t%3A' + req.body.q + '&wt=json', false, null, true));
+					http.get(url_str + 'select/?q=text_t%3A' + req.body.q + '&wt=json', function(res) {
+						console.log("Got response: " + res.statusCode);
+
+						//res.setEncoding('utf8');
+						var buffer = "";
+						res.on('data', function (chunk) {
+							buffer = buffer + chunk;
+						});
+						res.on('end', function () {
+							try {
+								var j = JSON.parse(buffer);
+							} catch (e) {
+								console.log(util.inspect("SOLR didn't return json: " + e, false, null, true));
+								Mres.redirect('bs_blog.jade');
+							}
+							//var buf = new Buffer(1024);//, encoding='utf8')
+							//var len = buf.write(j.response.docs[3].title_t, 0);
+							//console.log(util.inspect(
+							//	buf.toString('ascii', 0, len),
+							//	false, 
+							//	null, 
+							//	true
+							//));
+							if ((j !== null) && (j.hasOwnProperty('response')) && (j.response.hasOwnProperty('docs'))) {
+								var docs = j.response.docs;
+								for (i = 0; i < docs.length; i++) {
+									if (docs[i].hasOwnProperty('title_t')) {
+										docs[i].title = docs[i].title_t;
+										delete docs[i].title_t;
+									}
+									if (docs[i].hasOwnProperty('text_t')) {
+										docs[i].text = docs[i].text_t.substring(0, 800);
+										delete docs[i].text_t;
+									}
+								}
+								if (docs !== null) {
+									Mres.render('bs_blog.jade', {obj: docs});
+									//console.log(util.inspect(doc, false, null, true));
+								}
+							} else {
+								console.log(util.inspect("error with j", false, null, true));
+								Mres.redirect('bs_blog.jade');
+							}
+						});
+					});
+  				});
+			}).on('error', function(e) {
+				console.log("Got error: " + e.message);
+			});
+});
 
 app.get('/blog', function (req, res) {
     res.render('blog.jade', {});
