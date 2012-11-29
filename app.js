@@ -8,7 +8,6 @@ var express = require('express'),
 	path = require('path'),
 	util = require('util'),
 	assert = require('assert'),
-//	app = module.exports = express.createServer(),
 	app = express(),
 	http = require('http'),
 	server = http.createServer(app),
@@ -17,9 +16,7 @@ var express = require('express'),
 	nib = require('nib'),
 	carrier = require('carrier'),
 	mongoose = require('mongoose'),
-	//db = mongoose.connect('mongodb://localhost/db'),
 	db = mongoose.connect('mongodb://nodejitsu:4eecd4149dccaabfb7ef068439c86e61@staff.mongohq.com:10043/nodejitsudb454086444279'),
-	//bd = mongoose.connect('mongodb://spirin:vladimir@alex.mongohq.com:10047/blog_canaria'), 
 	Schema = mongoose.Schema,
 	nicknames = {},
 	CommentSchema = new Schema({
@@ -48,101 +45,10 @@ var express = require('express'),
 	boli = require('./boli.js').boli;
 	
 	//console.log(blog_data.length);
-	
-	var dns = require('dns');
+	//ps aux | grep node
+	//kill -9 PID
 
-	dns.resolve4('spirintravels.com', function (err, addresses) {
-  		if (err) throw err;
-
-  		console.log('addresses: ' + JSON.stringify(addresses));
-
-  		addresses.forEach(function (a) {
-    		dns.reverse(a, function (err, domains) {
-      			if (err) {
-        			throw err;
-      			}
-
-      			console.log('reverse for ' + a + ': ' + JSON.stringify(domains));
-    		});
-  		});
-	});
-	
-	//dns.lookup('http://api.solrhq.com/txt/061643c0225f5b73eec64227b491f6a2/start-session/blog/', 4, function(err, address, family) {
-	//dns.lookup('http://api.solrhq.com', 4, function(err, address, family) {
-	//	if (err) {
-	//		console.log('err');
-	//	} else {
-	//		console.log('dns: ' + address +' (family:' + family + ')');
-			
-			
-			//http://1.svr.solrhq.com/s/f07d192b8b8b3e47959cf798fdf4f81d/select/?q=solr
-			
-			//solrclient = solr.createClient('http://1.svr.solrhq.com/s/e4789c50b593f5074f1336fd6315ab47/', '80', '', '');
-			
-			//var query2 = solrclient.createQuery().q({title_t : '02'}).start(0).rows(10);
-
-			//solrclient.search(query2, function(err, obj) {
-			//	if (err) {
-			//		console.log(err);
-			//	} else {
-			//		console.log(obj);	
-			//	}
-			//});
-			//console.log(obj);	
-		//}
-	//});
-	//conf = require('./conf.js');
-	//solrclient.autoCommit = true;
-	
-	
-	//solr = require('solr'),
-    //client = solr.createClient('http://api.solrhq.com', '8983', '', '/txt/061643c0225f5b73eec64227b491f6a2/start-session/blog/');
-    // http://1.svr.solrhq.com/s/0cc7e6817d4fce402b4ac76a1ebb7d29/
-    //client = solr.createClient('1.svr.solrhq.com', '80', '', '/s/0cc7e6817d4fce402b4ac76a1ebb7d29');
-
-//    var doc1 = {
-//      id: '3',
-//      title_t: 'Foo bar',
-//      text_t: 'Fizz buzz frizzle'
-//    };
-//    var doc2 = {
-//      id: '4',
-//      title_t: 'Far boo',
-//      text_t: 'Wuzz fizz drizzle'
-//    };
-
-//    client.add(doc1, function(err) {
-//     if (err) throw err;
-//      console.log('First document added');
-//      client.add(doc2, function(err) {
-//        if (err) throw err;
-//        console.log('Second document added');
-//        client.commit(function(err) {
-// -----------------------------------------------------
-//          var query = 'title_t:02';
-//        client.query(query, function(err, response) {
-//            if (err) throw err;
-//            var responseObj = JSON.parse(response);
-//            console.log('A search for "' + query + '" returned ' + responseObj.response.numFound + ' documents.');
-//          
-//            responseObj.response.docs.forEach(function (doc) {
-//            	if (doc.hasOwnProperty('title_t')) {
-//	        		console.log('doc title: ' + doc.title_t);
-//	        	}
-//            });
-// -----------------------------------------------------------	        
-//	        client.del(null, query, function(err, response) {
-//              if (err) throw err;
-//              console.log('Deleted all docs matching query "' + query + '"');
-//              client.commit();
-//            });
-//          });
-//        });
-//      });
-//    });
-
-
-// solr-client
+//	var dns = require('dns');dns.resolve4('spirintravels.com', function (err, addresses) {if (err) throw err;console.log('addresses: ' + JSON.stringify(addresses));addresses.forEach(function (a) {dns.reverse(a, function (err, domains) {if (err) {	throw err;}console.log('reverse for ' + a + ': ' + JSON.stringify(domains));});});});
 function compare2arrays (a, b) {
 	if ((Array.isArray(a) === Array.isArray(b)) && (Array.isArray(a) === true)) {
 		if (a.length === b.length) {
@@ -231,6 +137,11 @@ function initdb() {
 					Blog.findOne({'title': el.h}, function (err, doc) {
 						var save = 0;
 						if (doc.text !== el.t) {
+							console.log('doc.text:');
+							console.log(util.inspect(doc.text, false, null, true));
+							console.log('el.t:');
+							console.log(util.inspect(el.t, false, null, true));
+							
 							//console.log('Going to modify (.text): ' + el.h);
 							doc.text = el.t;
 							save = 1;
@@ -264,12 +175,12 @@ app.configure(function () {
 	app.set('view engine', 'jade');
 	app.set('view options', {layout: false});
 	app.locals.pretty = true
-	
+
 	app.use(express.bodyParser());
 	app.use(express.bodyParser({uploadDir: './uploads'}));
-	
-   app.locals.pretty = true
-	
+
+	app.locals.pretty = true
+
 	app.use(express.methodOverride());
 	app.use(express.cookieParser());
 	app.use(express.session({
@@ -279,9 +190,9 @@ app.configure(function () {
 			url: 'mongodb://nodejitsu:a887da4690d881acc2555ca4625fd8f6@staff.mongohq.com:10077/nodejitsudb66255327513'
 		})
 	}));
-	
+
 //	app.use(everyauth.middleware(app));
-	
+
 	app.use(app.router);
 	app.use(express.static(__dirname + '/public'));
 	initdb();
@@ -305,16 +216,16 @@ app.configure('production', function () {
 //everyauth.debug = true;
 
 //everyauth.vkontakte
-//	.appId(conf.vkontakte.appId)
-//	.appSecret(conf.vkontakte.appSecret)
-//	.findOrCreateUser( function (session, accessToken, accessTokenExtra, vkUserMetadata) {
+//	appId(conf.vkontakte.appId)
+//	appSecret(conf.vkontakte.appSecret)
+//	findOrCreateUser( function (session, accessToken, accessTokenExtra, vkUserMetadata) {
 //	
 //		console.log(util.inspect(accessToken, false, null, true));
 //		//res.json(JSON.stringify(c));
 //		//return usersByVkId[vkUserMetadata.uid] ||
 //		//(usersByVkId[vkUserMetadata.uid] = addUser('vkontakte', vkUserMetadata));
 //	})
-//	.redirectPath('/bs_blog');
+//	redirectPath('/bs_blog');
 
 // Routes
 
@@ -368,10 +279,10 @@ io.sockets.on('connection', function (socket) {
 	});
 });
 
-app.get('/index', routes.index);
+app.get('/', routes.index);
 
-app.get('/', function (req, res) {
-    res.render('excursion.jade', {});
+app.get('/grancanaria', function (req, res) {
+	res.render('excursion.jade', {});
 });
 
 app.get('/bs_blog', function (req, res) {
@@ -390,14 +301,14 @@ app.get('/bs_blog', function (req, res) {
 app.get('/blog_dia', function (req, res) {
 	Blog.findOne({'title': req.query.h}, function (err, doc) {
 		if (doc !== null) {
-			//doc.remove(function (err, el) {
-			//	if (err) {
-			//		console.error("Error in remove(): " + handleError(err));
-			//		return handleError(err);
-			//	}
-			//	res.redirect('/bs_blog');
-				
-			//});
+//			doc.remove(function (err, el) {
+//				if (err) {
+//					console.error("Error in remove(): " + handleError(err));
+//					return handleError(err);
+//				}
+//				res.redirect('/bs_blog');
+//				
+//			});
 			res.render('blog_dia.jade', {date: doc.date, title: doc.title, text: doc.text, img: doc.images, comments: doc.comments});
 		}
 	});
@@ -475,34 +386,98 @@ app.post('/find', function (req, Mres) {
 							}
 						});
 					});
-  				});
+				});
 			}).on('error', function(e) {
 				console.log("Got error: " + e.message);
 			});
 });
 
 app.get('/blog', function (req, res) {
-    res.render('blog.jade', {});
+	res.render('blog.jade', {});
 });
 
 app.get('/blogjunio', function (req, res) {
-    res.render('blogjunio.jade', {});
+	Blog.find({title: /\.06\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
 });
 
 app.get('/blogjulio', function (req, res) {
-    res.render('blogjulio.jade', {});
+	Blog.find({title: /\.07\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
 });
 
 app.get('/blogagosto', function (req, res) {
-    res.render('blogagosto.jade', {});
+	Blog.find({title: /\.08\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
 });
 
 app.get('/blogseptiembre', function (req, res) {
-    res.render('blogseptiembre.jade', {});
+	Blog.find({title: /\.09\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
 });
 
 app.get('/blogoctubre', function (req, res) {
-    res.render('blogoctubre.jade', {});
+	Blog.find({title: /\.10\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
+});
+
+app.get('/blognoviembre', function (req, res) {
+	Blog.find({title: /\.11\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
+});
+
+app.get('/blogdiciembre', function (req, res) {
+	Blog.find({title: /\.12\./}, function (err, docs) {
+		if (docs !== null) {
+			var i;
+			for (i=0; i < docs.length; i++) {
+				docs[i].text = docs[i].text.substring(0, 800);
+			}
+			res.render('bs_blog.jade', {obj: docs});
+		}
+	});
 });
 
 app.get('/barcelona', function (req, res) {
@@ -831,7 +806,7 @@ app.post('/user_index', function (req, res) {
 		c = {
 			b: {
 				b1: {
-					x: parseInt(4 * (req.body.width / 6), 10),
+					x: parseInt(4.5 * (req.body.width / 6), 10),
 					y: parseInt(req.body.height / 4, 10),
 					vx: 1,
 					color: 'rgba(111,0,50,0.6)',
@@ -892,6 +867,15 @@ app.post('/user_index', function (req, res) {
 					move: 0,
 					text: "blog",
 					r: parseInt((1 / 17) * R, 10),
+					re_draw: 0
+				},
+				b8: {
+					x: parseInt(4 * (req.body.width / 6), 10),
+					y: parseInt(req.body.height / 2.25, 10),
+					color: 'rgba(0,0,255,0.6)',
+					move: 0,
+					text: "GranCanaria",
+					r: parseInt((1 / 18) * R, 10),
 					re_draw: 0
 				}
 			},
@@ -966,7 +950,7 @@ app.post('/user_blog', function (req, res) {
 			},
 			maxWidth: 200,
 			lineHeight: 15,
-			image: "/images/DSC_0616.JPG"
+			image: "http://img-fotki.yandex.ru/get/6417/19948730.3/0_7b30c_dc9fa8fb_orig"
 		};
 
 	res.contentType('json');
@@ -1042,7 +1026,7 @@ app.post('/user', function (req, res) {
 				y: 0
 			},
 			text: {
-				text: "Es hora a comer verduras fritas. Feliz ocho de marzo",
+				text: "",
 				maxWidth: 200,//==note.w
 				lineHeight: 20,
 				color: "white"

@@ -17,41 +17,51 @@ html
       })();
   body()
     .container
-        .row
-            .span8
-                .row
-                  .span8
-                    h4
-                      strong
+      form(accept-charset='UTF-8', action='/find', method='POST')
+        textarea#q.span4(name='q', placeholder='?', rows='1')
+        button.btn.btn-info(type='submit') O--
+      .row
+          .span12
+              .row
+                .span8
+                  h4
+                    strong
+                      - if(title != null)
                         a(href= '/blog_dia?h=' + title) #{title}
-                .row
-                  .span2
-                    - if(img != null)
-                      - for(j = 0; j < img.length; j++)
-                        a.thumbnail(href= '/blog_dia?h=' + title)
-                          img(src= img[j], alt='')
-                  .span6
-                    p
+              .row
+                .span6
+                  - if(img != null)
+                    - for(j = 0; j < img.length; j++)
+                      a.thumbnail(href= '/blog_dia?h=' + title)
+                        - var link = img[j].replace(/_orig$/,"_L");
+                          img(src= link, alt='')
+                .span6
+                  p
+                    - if(text != null)
                       | #{text}
-                .row
-                  .span8
-                    p
-                    p
-                      i.icon-user 
-                      | by
-                      a(href='#') Yulia 
-                      i.icon-calendar 
-                      | Oct 03th, 2012 
-                      i.icon-comment 
+              .row
+                .span8
+                  p
+                  p
+                    i.icon-user 
+                    | by
+                    a(href='#') Yulia 
+                    i.icon-calendar 
+                      - if(date != null)
+                        - var x = new Date(date), d = x.getDate(), m = x.getMonth()+1; y = x.getFullYear();x= '' + y +'-'+ (m<=9?'0'+m:m) +'-'+ (d<=9?'0'+d:d);
+                        a(href='#') #{x} 
+                    i.icon-comment 
+                    - if(comments != null)
                       a(href='#') #{comments.length} Comments 
-                hr
-                - if(comments != null)
-                  .row
-                    h4
-                      strong
-                        | Comments\:
-                    .span2
-                    .span6
+              hr
+              - if(comments != null)
+                .row
+                  h4
+                    strong
+                      | Comments:
+                  .span2
+                  .span6
+                    - if(comments != null)
                       - for(j = 0; j < comments.length; j++)
                         p
                           i.icon-user 
@@ -63,13 +73,13 @@ html
                           a(href='#') #{x} 
                         p
                           | #{comments[j].text}
-                .row
-                  .span6
-                    p
-                      .span4.well
-                        form(accept-charset='UTF-8', action='/comment', method='POST')
+              .row
+                .span6
+                  p
+                    .span4.well
+                      form(accept-charset='UTF-8', action='/comment', method='POST')
+                        - if(title != null)
                           input(type='HIDDEN', style='display: none;', name='title', value=title)
                           i.icon-comment 
-                          a(href='/auth/vkontakte') Vkontakte
                           textarea#new_message.span4(name='new_message', placeholder='Type in your comment', rows='5')
                           button.btn.btn-info(type='submit') Post New Message
